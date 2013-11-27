@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3c.org/1999/xhtml">
+  <head>
+    <script type="text/javascript" src="/static/js/json2.js"></script>
+    <script type="text/javascript" src="/static/js/jsonrpc.js"></script>
+    <script type="text/javascript">
+      function $(id) {
+    	  return document.getElementById(id);
+      }
+      
+      function dump(arr,level) {
+    		var dumped_text = "";
+    		if(!level) level = 0;
+    		
+    		//The padding given at the beginning of the line.
+    		var level_padding = "";
+    		for(var j=0;j<level+1;j++) level_padding += "    ";
+    		
+    		if(typeof(arr) == 'object') { //Array/Hashes/Objects 
+    			for(var item in arr) {
+    				var value = arr[item];
+    				
+    				if(typeof(value) == 'object') { //If it is an array,
+    					dumped_text += level_padding + "'" + item + "' ...\n";
+    					dumped_text += dump(value,level+1);
+    				} else {
+    					dumped_text += level_padding + "'" + item + "' => \"" + value + "\"\n";
+    				}
+    			}
+    		} else { //Stings/Chars/Numbers etc.
+    			dumped_text = "===>"+arr+"<===("+typeof(arr)+")";
+    		}
+    		return dumped_text;
+      }
+      
+      function login() {
+        var server = new JSONRPC('/json');
+        server.callRemote('login', {phone: $('phone').value, pin: $('pin').value},
+            function(requestId, result, error) {
+        		if(error != null) {
+        			alert(error.message)
+        		} else {
+        			alert(dump(result, 5));
+        			$('session').value = result['cookies']['PHPSESSID'];
+        		}
+            }
+        );
+      }
+      
+      function logout() {
+          var server = new JSONRPC('/json');
+          server.callRemote('logout', {session: $('session').value},
+              function(requestId, result, error) {
+                alert(result);
+              }
+          );
+      }
+      
+      function isSessionValid() {
+          var server = new JSONRPC('/json');
+          server.callRemote('isSessionValid', {session: $('session').value},
+              function(requestId, result, error) {
+                alert(result);
+              }
+          );
+      }
+    </script>
+    <title>Hello, World!</title>
+  </head>
+  <body>
+    <input type='text' id='phone' /><input type='password' id='pin' /><button onclick="javascript:login();">Login</button><br/>
+    Session: <input type='text' id='session' /><br/>
+    <button onclick="javascript:logout();">logout</button><br/>
+    <button onclick="javascript:isSessionValid();">isSessionVald</button><br/>
+  </body>
+</html>
